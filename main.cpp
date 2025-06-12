@@ -5,18 +5,84 @@
 
 #define WIDTH 640
 #define HEIGHT 480
+#define COLOR_WHITE 0xffffffff
+#define COLOR_BLACK 0x00000000
 
-struct Circle{
+#define G_a 2 //Gravity
 
-    int x,y,radius; //x and y are the coordinates of the centerpoint of this circle
+class Circle{
+    public:
+        double x,y,radius; //x and y are the coordinates of the centerpoint of this circle
+        double v_x,v_y; //Circle's x and y velocity component
+
+        Circle(double x,double y,double radius,double vx,double vy){
+            this->x=x;
+            this->y=y;
+            this->radius=radius;
+            this->v_x=vx;
+            this->v_y=vy;
+        }
 };
 
-void FillCircle(SDL_Surface* surface,struct Circle Circle){
+void FillCircle(SDL_Surface* surface,Circle* Circle){
 
-    int border_x_low = Circle.x - Circle.radius;
-    int border_y_low = Circle.y - Circle.radius;
-    int border_x_high = Circle.x + Circle.radius;
-    int border_y_high = Circle.y + Circle.radius;
+    int border_x_low = Circle->x - Circle->radius;
+    int border_y_low = Circle->y - Circle->radius;
+    int border_x_high = Circle->x + Circle->radius;
+    int border_y_high = Circle->y + Circle->radius;
+
+    double distance_squared=0; //distance from centerpoint
+    double radius_squared = Circle->radius*Circle->radius;
+
+    for(int x=border_x_low; x<border_x_high; x++)
+    {
+        for(int y = border_y_low; y<border_y_high; y++)
+        {
+            //We now check if the pixels in this coordinate range fall within our circle, if so, we fill them.
+
+            distance_squared = (((x-Circle->x)*(x-Circle->x))+((y-Circle->y)*(y-Circle->y)));
+
+            if(distance_squared<radius_squared) //This means the pixel is within the circle!
+            {
+                SDL_Rect pixel = (SDL_Rect) {x,y,1,1};
+                SDL_FillRect(surface, &pixel ,COLOR_WHITE);
+            }
+
+        }
+
+    }
+}
+
+void EngineStep(Circle* Circle){
+
+    //Based on the velocity components, we now want to move the circle on the screen!
+    Circle->x+=Circle->v_x;
+    Circle->y+=Circle->v_y;
+
+    Circle->v_y+=G_a; //Falling down from gravity
+
+    //Collision detection:
+
+    if(Circle->y+Circle->radius>HEIGHT){
+        Circle->y = HEIGHT-Circle->radius;
+        Circle->v_y*=-0.75;
+    }
+
+    if(Circle->y-Circle->radius<0){
+        Circle->y = 0+Circle->radius;
+        Circle->v_y*=-0.45;
+    }
+
+    if(Circle->x+Circle->radius>WIDTH){
+        Circle->x = WIDTH-Circle->radius;
+        Circle->v_x*=-0.75;
+    }
+
+    if(Circle->x-Circle->radius<0){
+        Circle->x = 0+Circle->radius;
+        Circle->v_x*=-0.75;
+    }
+
 }
 
 int main(int argc, char* argv[]){
@@ -29,14 +95,28 @@ int main(int argc, char* argv[]){
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
     //Start of Rendering
-    SDL_Rect rect = (SDL_Rect) {250,200,200,200};
-    SDL_FillRect(surface, &rect, 0xffffffff);
 
-    //Updates window with the rendered object:
-    SDL_UpdateWindowSurface(window);
+    SDL_Rect erase_screen = (SDL_Rect) {0,0,WIDTH,HEIGHT};
 
-    //Wait 3 seconds then close the window:
-    SDL_Delay(3000);
+    bool simul_on = true;
+    SDL_Event event;
+    Circle circle(100,150,50,3,0);
+
+    while(simul_on==true)
+    {
+        while(SDL_PollEvent(&event))
+        {
+            if(event.type==SDL_QUIT){
+            simul_on=false;
+            }
+        }
+
+        SDL_FillRect(surface,&erase_screen,COLOR_BLACK); //Clears the screen each frame to draw the circle again
+        FillCircle(surface, &circle);
+        EngineStep(&circle);
+        SDL_UpdateWindowSurface(window);
+        SDL_Delay(32);
+    }
 
     return 0;
 }

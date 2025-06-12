@@ -13,15 +13,15 @@
 				<Option compiler="gcc" />
 				<Compiler>
 					<Add option="-g" />
-					<Add directory="../SDL2-2.32.8/x86_64-w64-mingw32/lib" />
-					<Add directory="../SDL2-2.32.8/x86_64-w64-mingw32/include" />
+					<Add directory="SDL/lib" />
+					<Add directory="SDL/include" />
 				</Compiler>
 				<Linker>
 					<Add option="-static-libstdc++" />
 					<Add option="-static-libgcc" />
 					<Add option="-LSDL2.dll" />
-					<Add library="../SDL2-2.32.8/x86_64-w64-mingw32/lib/libSDL2.a" />
-					<Add library="../SDL2-2.32.8/x86_64-w64-mingw32/lib/libSDL2main.a" />
+					<Add library="SDL/lib/libSDL2.a" />
+					<Add library="SDL/lib/libSDL2main.a" />
 				</Linker>
 			</Target>
 			<Target title="Release">
