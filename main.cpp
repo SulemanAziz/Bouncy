@@ -22,6 +22,9 @@ class Circle{
             this->v_x=vx;
             this->v_y=vy;
         }
+
+        bool atrest_y = false;
+        bool atrest_x = false;
 };
 
 void FillCircle(SDL_Surface* surface,Circle* Circle){
@@ -59,7 +62,18 @@ void EngineStep(Circle* Circle){
     Circle->x+=Circle->v_x;
     Circle->y+=Circle->v_y;
 
-    Circle->v_y+=G_a; //Falling down from gravity
+    std::cout<<"Y Velocity: "<<Circle->v_y<<"\n";
+    std::cout<<"Rest? "<<Circle->atrest_y<<"\n";
+
+    if(){ //At what point do we declare that the Circle is at rest?
+        Circle->v_y=0;
+        Circle->atrest_y=true;
+    }
+
+    if(Circle->atrest_y==false){
+        Circle->v_y+=G_a; //Falling down from gravity
+    }
+
 
     //Collision detection:
 
@@ -104,7 +118,7 @@ int main(int argc, char* argv[]){
 
     bool simul_on = true;
     SDL_Event event;
-    Circle circle(100,150,50,12,20);
+    Circle circle(100,150,50,0,2);
 
     while(simul_on==true)
     {
