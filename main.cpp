@@ -64,24 +64,28 @@ void EngineStep(Circle* Circle){
     //Collision detection:
 
     if(Circle->y+Circle->radius>HEIGHT){
-        Circle->y = HEIGHT-Circle->radius;
-        Circle->v_y*=-0.75;
+        Circle->v_y*=-0.65;
+        Circle->y = HEIGHT-Circle->radius+Circle->v_y;
     }
 
     if(Circle->y-Circle->radius<0){
-        Circle->y = 0+Circle->radius;
-        Circle->v_y*=-0.45;
+        Circle->v_y*=-0.65;
+        Circle->y = 0+Circle->radius+Circle->v_y;
     }
 
     if(Circle->x+Circle->radius>WIDTH){
-        Circle->x = WIDTH-Circle->radius;
-        Circle->v_x*=-0.75;
+        Circle->v_x*=-0.65;
+        Circle->x = WIDTH-Circle->radius+Circle->v_x;
     }
 
     if(Circle->x-Circle->radius<0){
-        Circle->x = 0+Circle->radius;
-        Circle->v_x*=-0.75;
+        Circle->v_x*=-0.65;
+        Circle->x = 0+Circle->radius+Circle->v_x;
     }
+
+    //How do we make it stop bouncing? It also needs to diminish v_x to simulate some sort of friction. At some point, the ball must become stationary.
+
+
 
 }
 
@@ -100,7 +104,7 @@ int main(int argc, char* argv[]){
 
     bool simul_on = true;
     SDL_Event event;
-    Circle circle(100,150,50,3,0);
+    Circle circle(100,150,50,12,20);
 
     while(simul_on==true)
     {
