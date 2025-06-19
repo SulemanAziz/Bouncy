@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1750345587 source:c:\users\laptop\documents\code\graphics\sdl_app\main.cpp
+1750347841 source:c:\users\laptop\documents\code\graphics\sdl_app\main.cpp
 	<iostream>
 	<SDL2/SDL.h>
 
