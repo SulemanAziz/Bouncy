@@ -1,6 +1,8 @@
 #undef main //Linker nonsense, otherwise it wants me to start with SDL_main() instead of int main()
 
 #include <iostream>
+#include <vector>
+#include<map>
 #include <SDL2/SDL.h>
 
 #define WIDTH 640
@@ -8,7 +10,10 @@
 #define COLOR_WHITE 0xffffffff
 #define COLOR_BLACK 0x00000000
 
-#define G_a 2 //Gravity
+#define G_a 1.2 //Gravity
+
+std::map<int, bool> x_Map;
+std::map<int, bool> y_Map; //Coordinate Map for level
 
 class Circle{
     public:
@@ -22,9 +27,6 @@ class Circle{
             this->v_x=vx;
             this->v_y=vy;
         }
-
-        bool atrest_y = false;
-        bool atrest_x = false;
 };
 
 void FillCircle(SDL_Surface* surface,Circle* Circle){
@@ -56,70 +58,112 @@ void FillCircle(SDL_Surface* surface,Circle* Circle){
     }
 }
 
-void EngineStep(Circle* Circle, SDL_Rect platform){
+void EngineStep(Circle* Circle){
 
     //Based on the velocity components, we now want to move the circle on the screen!
     Circle->x+=Circle->v_x;
     Circle->y+=Circle->v_y;
 
-    std::cout<<"Y Velocity: "<<Circle->v_y<<"\n";
-    std::cout<<"Rest? "<<Circle->atrest_y<<"\n";
-    std::cout<<"Sum of Velocity and G: "<<Circle->v_y + G_a<<"\n";
+    Circle->v_y+=G_a; //Falling down from gravity
 
-    /* if(Circle->v_y+G_a>0 && Circle->v_y+G_a<0.5){ //At what point do we declare that the Circle is at rest?
-        Circle->y+=Circle->v_y;
-        Circle->v_y=0;
-        Circle->atrest_y=true;
-    } */
-
-    if(Circle->atrest_y==false){
-        Circle->v_y+=G_a; //Falling down from gravity
-    }
-
-    //Collision detection:
+    //Boundary Collision detection:
 
     if(Circle->y+Circle->radius>HEIGHT){
-        Circle->v_y*=-0.65;
+        Circle->v_y*=-0.75;
         Circle->y = HEIGHT-Circle->radius+Circle->v_y;
     }
 
     if(Circle->y-Circle->radius<0){
-        Circle->v_y*=-0.65;
+        Circle->v_y*=-0.75;
         Circle->y = Circle->radius+Circle->v_y;
     }
 
     if(Circle->x+Circle->radius>WIDTH){
-        Circle->v_x*=-0.65;
+        Circle->v_x*=-0.75;
         Circle->x = WIDTH-Circle->radius+Circle->v_x;
     }
 
     if(Circle->x-Circle->radius<0){
-        Circle->v_x*=-0.65;
+        Circle->v_x*=-0.75;
         Circle->x = Circle->radius+Circle->v_x;
     }
 
-    //How do we make it stop bouncing? It also needs to diminish v_x to simulate some sort of friction. At some point, the ball must become stationary.
+    //Platform Collisions:
 
-    //Below is Platform Collisions:
+    if((x_Map[Circle->x-Circle->radius]==true || x_Map[Circle->x+Circle->radius]==true) && (y_Map[Circle->y-Circle->radius]==true || y_Map[Circle->y+Circle->radius]==true)){
 
-    if(Circle->x < platform.x+platform.w && Circle->x > platform.x && Circle->y > platform.y+platform.h)
-    {
-        Circle->y = (platform.y+platform.h)+Circle->radius;
-        Circle->v_y*=-0.65;
+       if(x_Map[Circle->x-Circle->radius]==true){
+            Circle->v_x*=-0.75;
+            Circle->x = Circle->x + 0.75;
+       }
+       else if(x_Map[Circle->x+Circle->radius]==true){
+            Circle->v_x*=-0.75;
+            Circle->x = Circle->x - 0.75;
+       }
+
+       if(y_Map[Circle->y-Circle->radius]==true){
+            Circle->v_y*=-0.75;
+            Circle->y = Circle->y + 0.75;
+       }
+       else if(y_Map[Circle->y+Circle->radius]==true){
+            Circle->v_y*=-0.75;
+            Circle->y = Circle->y - 0.75;
+       }
+    }
+}
+
+void CreateMap(){
+
+    int Width = WIDTH;
+    int Height = HEIGHT;
+
+    for(Width; Width>0; Width--){
+        x_Map.insert({Width, false});
+    }
+
+    for(Height; Height>0; Height--){
+        y_Map.insert({Height, false});
+    }
+}
+
+void CreateCollisions(SDL_Rect Obstacle){
+
+    int start_x = Obstacle.x;
+    int start_y = Obstacle.y;
+
+    int end_x = Obstacle.x + Obstacle.w;
+    int end_y = Obstacle.y + Obstacle.h;
+
+    for(start_x; start_x<=end_x; start_x++){
+        x_Map[start_x] = true;
+    }
+
+    for(start_y; start_y<=end_y; start_y++){
+        y_Map[start_y] = true;
     }
 
 }
 
-SDL_Rect Spawn_Platforms(SDL_Surface* surface){
-
-    SDL_Rect platform = (SDL_Rect) {WIDTH/2,HEIGHT/2,70,40};
-    SDL_FillRect(surface, &platform, COLOR_WHITE);
-    return platform;
+void RenderObstacle(SDL_Surface* surface, SDL_Rect* Obstacle){
+    SDL_FillRect(surface, Obstacle, COLOR_WHITE);
 }
 
 int main(int argc, char* argv[]){
 
+
     std::cout<<"Starting Program\n";
+    std::cout<<"Generating Map...\n";
+
+    CreateMap();
+
+    std::cout<<"Map Generated\n";
+    std::cout<<"Generating Collision Map...\n";
+
+    SDL_Rect Obstacle = (SDL_Rect) {200,400,70,80};
+
+    CreateCollisions(Obstacle);
+
+    std::cout<<"Collision Map Generated\n";
 
     //Basic Initialization stuff:
     SDL_Init(SDL_INIT_VIDEO);
@@ -127,11 +171,10 @@ int main(int argc, char* argv[]){
     SDL_Surface* surface = SDL_GetWindowSurface(window);
 
     //Start of Rendering
-
     SDL_Rect erase_screen = (SDL_Rect) {0,0,WIDTH,HEIGHT};
 
     bool simul_on = true;
-    Circle circle(100,150,35,0,0);
+    Circle circle(10,50,35,0,0);
     SDL_Event event; //This is to see if the window has been closed or not
 
     while(simul_on==true)
@@ -139,7 +182,8 @@ int main(int argc, char* argv[]){
         while(SDL_PollEvent(&event))
         {
             if(event.type==SDL_QUIT){
-            simul_on=false;
+                break;
+                simul_on=false;
             }
 
             if(event.type==SDL_KEYDOWN)
@@ -147,28 +191,31 @@ int main(int argc, char* argv[]){
                 switch(event.key.keysym.sym)
                 {
                     case SDLK_LEFT:
-                    circle.v_x-=12;
+                    circle.v_x-=7;
                     break;
 
                     case SDLK_RIGHT:
-                    circle.v_x+=12;
+                    circle.v_x+=7;
                     break;
 
                     case SDLK_UP:
-                    circle.v_y-=12;
+                    circle.v_y-=7;
                     break;
 
                     case SDLK_DOWN:
-                    circle.v_y+=12;
+                    circle.v_y+=7;
                     break;
                 }
             }
         }
 
         SDL_FillRect(surface,&erase_screen,COLOR_BLACK); //Clears the screen each frame to draw the circle again
+        RenderObstacle(surface, &Obstacle);
         FillCircle(surface, &circle);
-        EngineStep(&circle,Spawn_Platforms(surface));
+
+        EngineStep(&circle);
+
         SDL_UpdateWindowSurface(window);
-        SDL_Delay(32);
+        SDL_Delay(32); //30 FPS
     }
 }

@@ -1,6 +1,8 @@
 # depslib dependency file v1.0
-1750347841 source:c:\users\laptop\documents\code\graphics\sdl_app\main.cpp
+1754238933 source:c:\users\laptop\documents\code\graphics\sdl_app\main.cpp
 	<iostream>
+	<vector>
+	<map>
 	<SDL2/SDL.h>
 
 1748920806 c:\users\laptop\documents\code\graphics\sdl2-2.32.8\x86_64-w64-mingw32\include\sdl2\sdl.h
