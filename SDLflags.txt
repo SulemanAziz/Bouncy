@@ -1,0 +1,2 @@
+In Unix, add these to the compilation command:
+`sdl2-config --cflags --libs`
