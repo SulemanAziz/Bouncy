@@ -126,26 +126,31 @@ void CreateMap(){
     }
 }
 
-void CreateCollisions(SDL_Rect Obstacle){
+void CreateCollisions(SDL_Rect (&Obstacle)[]){
 
-    int start_x = Obstacle.x;
-    int start_y = Obstacle.y;
+    for(int i=0; i<sizeof(&Obstacle)/4; i++){
 
-    int end_x = Obstacle.x + Obstacle.w;
-    int end_y = Obstacle.y + Obstacle.h;
+        int start_x = Obstacle[i].x;
+        int start_y = Obstacle[i].y;
 
-    for(start_x; start_x<=end_x; start_x++){
-        x_Map[start_x] = true;
-    }
+        int end_x = Obstacle[i].x + Obstacle[i].w;
+        int end_y = Obstacle[i].y + Obstacle[i].h;
 
-    for(start_y; start_y<=end_y; start_y++){
-        y_Map[start_y] = true;
+        for(start_x; start_x<=end_x; start_x++){
+            x_Map[start_x] = true;
+        }
+
+        for(start_y; start_y<=end_y; start_y++){
+            y_Map[start_y] = true;
+        }
     }
 
 }
 
-void RenderObstacle(SDL_Surface* surface, SDL_Rect* Obstacle){
-    SDL_FillRect(surface, Obstacle, COLOR_WHITE);
+void RenderObstacle(SDL_Surface* surface, SDL_Rect (&Obstacle)[]){
+    for(int i=0;i<sizeof(&Obstacle)/4;i++){
+        SDL_FillRect(surface, &Obstacle[i], COLOR_WHITE);
+    }
 }
 
 int main(int argc, char* argv[]){
@@ -159,7 +164,7 @@ int main(int argc, char* argv[]){
     std::cout<<"Map Generated\n";
     std::cout<<"Generating Collision Map...\n";
 
-    SDL_Rect Obstacle = (SDL_Rect) {200,400,70,80};
+    SDL_Rect Obstacle[] = { (SDL_Rect) {200,400,70,80}, (SDL_Rect) {300,300,70,80} };
 
     CreateCollisions(Obstacle);
 
@@ -210,7 +215,8 @@ int main(int argc, char* argv[]){
         }
 
         SDL_FillRect(surface,&erase_screen,COLOR_BLACK); //Clears the screen each frame to draw the circle again
-        RenderObstacle(surface, &Obstacle);
+        RenderObstacle(surface, Obstacle);
+
         FillCircle(surface, &circle);
 
         EngineStep(&circle);
